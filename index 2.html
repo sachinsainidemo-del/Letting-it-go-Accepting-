@@ -1,0 +1,429 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Heartfelt Surprise for Sam</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&family=Caveat:wght@700&family=Mrs+Saint+Delafield&display=swap');
+
+        body {
+            background: linear-gradient(to bottom, #fff5f7 0%, #ffe4e6 100%);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* --- Envelope Opening & Fade-out Animation --- */
+        #envelope-stage {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, #fff5f7, #ffe4e6);
+            transition: opacity 1s ease-out, visibility 1s;
+        }
+
+        #envelope-stage.fade-away {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .envelope-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope {
+            position: relative;
+            width: 280px;
+            height: 180px;
+            background: #fdf2f8;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 15px 35px rgba(251, 113, 133, 0.2);
+        }
+
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-top: 100px solid #fbcfe8;
+            z-index: 20;
+            transform-origin: top;
+            transition: transform 0.6s ease;
+        }
+
+        .envelope-body {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: #fce7f3;
+            border-radius: 0 0 10px 10px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .heart-seal {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 45px;
+            height: 45px;
+            background: #db2777;
+            border-radius: 50%;
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: opacity 0.3s ease;
+        }
+
+        /* Animation when clicked */
+        .envelope-wrapper.open .envelope::before {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+        .envelope-wrapper.open .heart-seal {
+            opacity: 0;
+        }
+
+        /* --- Main Content Styles --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(251, 113, 133, 0.15);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid #ffe4e6;
+            z-index: 10;
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cursive { font-family: 'Dancing Script', cursive; }
+        .caveat { font-family: 'Caveat', cursive; }
+        .real-handwriting { font-family: 'Mrs Saint Delafield', cursive; font-weight: 400; }
+
+        .polaroid {
+            background: white;
+            padding: 15px 15px 35px 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transform: rotate(-1.5deg);
+            border: 1px solid #fce7f3;
+        }
+
+        .suspense-btn {
+            background: #ffe4e6;
+            color: #db2777;
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid #fbcfe8;
+        }
+
+        #pic-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 200;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 80%;
+            border: 5px solid white;
+            border-radius: 8px;
+            animation: zoomIn 0.3s ease-out;
+        }
+
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .floating-element {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .hidden-content { display: none; }
+        
+        blockquote {
+            border-left: 3px solid #fecdd3;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            text-align: left;
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .signature-container {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signature-text {
+            font-size: 2.8rem;
+            color: #be185d;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 0;
+            display: inline-block;
+            transform: rotate(-3deg);
+        }
+
+        .animate-sign {
+            animation: writeEffect 3s cubic-bezier(0.445, 0.05, 0.55, 0.95) forwards;
+            animation-delay: 1.2s;
+        }
+
+        @keyframes writeEffect { from { width: 0; opacity: 0; } 1% { opacity: 1; } to { width: 140px; opacity: 1; } }
+
+        .sig-line {
+            width: 0;
+            height: 2px;
+            background: rgba(190, 24, 93, 0.4);
+            margin-top: -10px;
+            border-radius: 50%;
+            animation: drawLine 1s ease-out forwards;
+            animation-delay: 3.8s;
+        }
+
+        @keyframes drawLine { from { width: 0; } to { width: 150px; } }
+
+        .gift-box-footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease-out;
+        }
+
+        .gift-box-footer.show { opacity: 1; transform: translateY(0); }
+
+        .permanent-blur { filter: blur(4px); background: rgba(251, 113, 133, 0.1); border-radius: 4px; padding: 0 4px; }
+    </style>
+</head>
+<body>
+<audio id="bgMusic" loop>
+    <source src="song.mp3" type="audio/mpeg">
+</audio>
+
+    <div id="star-container"></div>
+
+
+    <!-- Start Stage: Envelope with Fade-out Logic -->
+    <div id="envelope-stage">
+        <div class="envelope-wrapper" id="env-wrap" onclick="openAndFade()">
+            <div class="envelope">
+                <div class="envelope-body">
+                    <span class="caveat text-rose-400 text-lg font-bold">Confidential for Sam</span>
+                </div>
+                <div class="heart-seal">❤️</div>
+            </div>
+            <p class="caveat text-rose-500 text-center mt-8 text-xl animate-pulse">Tap to open your letter... ✨</p>
+        </div>
+    </div>
+
+    <!-- Main Letter Content -->
+    <div id="main-card" class="glass-card p-8 text-center">
+        <div id="initial-state">
+            <div class="mb-6 px-2">
+                <p class="caveat text-xl text-rose-500 leading-tight">
+                    Raab tinu hmesha khush rkhe te sare supne pure kre ☺️💫🤌🏻
+                </p>
+            </div>
+
+            <div class="text-5xl mb-4">💖</div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Dear Sonam Rajput</h1>
+            <p class="text-pink-500 font-medium mb-6 cursive text-2xl">Always Shining, Sam 💫</p>
+            
+            <blockquote>
+                Finally meri din, raato ki mehnat khtm hui aaj aur kal release hojygiii… 🎬✨ Aur abbb 15-18-20 Hour screen time nhi dekhna pdega aur naahi hi puri raato jagna... 😴🧠🚫 Aur medicine bhi refocus try hoga taki dubara se good effects show hon and 0 headache with good health… 💊📉🩹<br><br>
+                <b>"Your silence matters to me more than anything else right now... it's the loudest thing I've ever heard."</b>
+            </blockquote>
+
+            <button onclick="revealSurprise()" class="bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold py-4 px-10 rounded-full shadow-lg active:scale-95 text-lg">Feel the Magic ✨</button>
+        </div>
+
+        <div id="reveal-state" class="hidden-content">
+            <div class="text-4xl mb-6">🐣💫</div>
+            <div class="polaroid mx-auto mb-8">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <span class="font-bold text-pink-600 text-sm tracking-tight uppercase">Trailer Hint 🎬</span>
+                    <button id="viewBtn" onclick="openPic()" class="suspense-btn">👁️ Reveal</button>
+                </div>
+                <div class="w-full h-32 bg-pink-50 rounded-sm flex items-center justify-center border border-pink-100 mb-3 relative overflow-hidden">
+                     <span class="text-3xl opacity-20">🔒💖🔒</span>
+                </div>
+                <div class="caveat text-left text-gray-700 text-xl px-1">
+                    <p>It was really a shocking reaction on your face... <span class="permanent-blur">pyara sa face</span>.</p>
+                </div>
+                <p id="counterLabel" class="text-[10px] text-gray-300 mt-4 text-right uppercase">Views - 3 times</p>
+            </div>
+
+            <div class="bg-rose-50/50 border border-rose-100 rounded-2xl p-5 mb-6 text-sm">
+                Sonam, kal raat <span class="font-bold text-rose-600">8:00 PM - 10:00 PM</span> ke darmiyan kuch aisa hoga... jo mujhe khud bhi n pata 🫠🌙
+            </div>
+            
+            <div class="flex justify-center space-x-4 mb-4">
+                <div class="text-center"><span class="block text-3xl font-bold" id="hours">--</span><span class="text-[10px] text-gray-400 uppercase">Hours</span></div>
+                <div class="text-center"><span class="block text-3xl font-bold" id="minutes">--</span><span class="text-[10px] text-gray-400 uppercase">Mins</span></div>
+                <div class="text-center"><span class="block text-3xl font-bold" id="seconds">--</span><span class="text-[10px] text-gray-400 uppercase">Secs</span></div>
+            </div>
+
+            <p class="text-xs text-rose-400/70 caveat mt-2 mb-4 italic">Count down feels like a silence 🚨🙂</p>
+
+            <div class="signature-container">
+                <span id="live-sig" class="signature-text real-handwriting">Rohin</span>
+                <div class="sig-line"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gift-footer" class="gift-box-footer">
+        <div class="text-4xl animate-bounce">🎁</div>
+        <div class="text-2xl caveat font-bold text-pink-600">See you tomorrow’s night with _____.<br>Gunie 😊</div>
+    </div>
+
+    <div id="pic-modal" onclick="closePic()">
+        <img src="https://i.ibb.co/Xr0p9Ytw/IMG-3375.jpg" alt="Secret Surprise" class="modal-content">
+    </div>
+
+    <script>
+        let viewCount = 0;
+        const maxViews = 3;
+        let showHearts = false;
+
+        function openAndFade() {
+            const wrapper = document.getElementById('env-wrap');
+            const stage = document.getElementById('envelope-stage');
+            const card = document.getElementById('main-card');
+            
+            // 1. Open Envelope Animation
+            wrapper.classList.add('open');document.getElementById('bgMusic').play();
+            
+            // 2. Start Fade Out Stage
+            setTimeout(() => {
+                stage.classList.add('fade-away');
+                // 3. Show Main Card
+                card.classList.add('show');
+            }, 800);
+        }
+
+        function openPic() {
+            if (viewCount < maxViews) {
+                document.getElementById('pic-modal').style.display = 'flex';
+                viewCount++;
+                document.getElementById('counterLabel').innerHTML = `Views - ${maxViews - viewCount} times`;
+                if (viewCount >= maxViews) {
+                    document.getElementById('viewBtn').disabled = true;
+                    document.getElementById('viewBtn').innerText = "Locked 🔒";
+                }
+            }
+        }
+
+        function closePic() { document.getElementById('pic-modal').style.display = 'none'; }
+
+        function createFloatingElement(type) {
+            const container = document.getElementById('star-container');
+            const element = document.createElement('div');
+            element.classList.add('floating-element');
+            element.innerHTML = type === 'star' ? '✨' : '💖';
+            element.style.left = Math.random() * 100 + 'vw';
+            element.style.fontSize = (Math.random() * 15 + 10) + 'px';
+            element.style.animation = `float-up ${(Math.random() * 4 + 4)}s linear forwards`;
+            container.appendChild(element);
+            setTimeout(() => element.remove(), 6000);
+        }
+
+        setInterval(() => createFloatingElement('star'), 600);
+        setInterval(() => { if (showHearts) createFloatingElement('heart'); }, 1000);
+
+        function revealSurprise() {
+            const music = document.getElementById('bgMusic');
+            music.volume = 0.4;
+            music.play().catch(() => {});
+
+            document.getElementById('initial-state').classList.add('hidden-content');
+            document.getElementById('reveal-state').classList.remove('hidden-content');
+            document.getElementById('gift-footer').classList.add('show');
+            
+            setTimeout(() => {
+                document.getElementById('live-sig').classList.add('animate-sign');
+            }, 500);
+
+            showHearts = true;
+            startCountdown();
+        }
+
+        function startCountdown() {
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + 1);
+            targetDate.setHours(20, 0, 0, 0);
+
+            function update() {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+                if (diff <= 0) return;
+                document.getElementById('hours').innerText = Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
+                document.getElementById('minutes').innerText = Math.floor((diff / 1000 / 60) % 60).toString().padStart(2, '0');
+                document.getElementById('seconds').innerText = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
+            }
+            setInterval(update, 1000);
+            update();
+        }
+    </script>
+</body>
+</html>
+
+```
